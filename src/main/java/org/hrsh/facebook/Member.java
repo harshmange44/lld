@@ -10,8 +10,8 @@ public class Member extends User {
     private List<Page> pages;
     private List<Group> groups;
     private List<ConnectionInvitation> connectionInvitations;
-    private List<org.hrsh.facebook.List> privacyList;
-    private SearchIndex searchIndex;
+    private List<PostList> privacyPostList;
+    private final SearchIndex searchIndex;
 
     public Member() {
         this.searchIndex = new SearchIndex();
@@ -91,11 +91,11 @@ public class Member extends User {
         this.connectionInvitations = connectionInvitations;
     }
 
-    public List<org.hrsh.facebook.List> getPrivacyList() {
-        return privacyList;
+    public List<PostList> getPrivacyList() {
+        return privacyPostList;
     }
 
-    public void setPrivacyList(List<org.hrsh.facebook.List> privacyList) {
-        this.privacyList = privacyList;
+    public void setPrivacyList(List<PostList> privacyPostList) {
+        this.privacyPostList = privacyPostList;
     }
 }
