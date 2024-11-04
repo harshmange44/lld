@@ -1,6 +1,6 @@
 package org.hrsh.chess;
 
-public class ChessSystem {
+public class ChessEngine {
     // 1 One Chess Board
     // 2 Two Players - White & Black
     // 3 White plays first
