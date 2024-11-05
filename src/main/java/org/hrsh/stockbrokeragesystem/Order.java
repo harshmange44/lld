@@ -1,5 +1,6 @@
 package org.hrsh.stockbrokeragesystem;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public abstract class Order {
@@ -9,6 +10,8 @@ public abstract class Order {
     private int quantity;
     private double totalPrice;
     private OrderStatus orderStatus;
+    private final LocalDateTime createdAt;
+    private LocalDateTime executedAt;
 
     public Order(Account account, Stock stock, int quantity, double totalPrice) {
         this.id = UUID.randomUUID().toString();
@@ -17,6 +20,7 @@ public abstract class Order {
         this.quantity = quantity;
         this.totalPrice = totalPrice;
         this.orderStatus = OrderStatus.PENDING;
+        this.createdAt = LocalDateTime.now();
     }
 
     public abstract boolean execute();
@@ -47,5 +51,25 @@ public abstract class Order {
 
     public void setOrderStatus(OrderStatus orderStatus) {
         this.orderStatus = orderStatus;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getExecutedAt() {
+        return executedAt;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public void setTotalPrice(double totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public void setExecutedAt(LocalDateTime executedAt) {
+        this.executedAt = executedAt;
     }
 }

@@ -1,5 +1,7 @@
 package org.hrsh.stockbrokeragesystem;
 
+import java.time.LocalDateTime;
+
 public class BuyOrder extends Order {
     public BuyOrder(Account account, Stock stock, int quantity, double totalPrice) {
         super(account, stock, quantity, totalPrice);
@@ -7,6 +9,7 @@ public class BuyOrder extends Order {
 
     @Override
     public boolean execute() {
+        setExecutedAt(LocalDateTime.now());
         Account account = getAccount();
         if (getTotalPrice() > account.getBalance()) {
             setOrderStatus(OrderStatus.CANCELLED);
