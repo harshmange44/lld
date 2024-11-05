@@ -1,5 +1,6 @@
 package org.hrsh.movieticketbookingsystem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MovieTicketBookingSystem {
@@ -11,9 +12,15 @@ public class MovieTicketBookingSystem {
       5. Reserve Seats before Booking for 15 minutes
      */
 
-    private List<Movie> movies;
-    private List<Show> shows;
-    private List<Theatre> theatres;
+    private final List<Movie> movies;
+    private final List<Show> shows;
+    private final List<Theatre> theatres;
+
+    public MovieTicketBookingSystem() {
+        this.movies = new ArrayList<>();
+        this.shows = new ArrayList<>();
+        this.theatres = new ArrayList<>();
+    }
 
     public void selectSeats(List<Seat> seats) {
         if (areSeatsAvailable(seats)) {
