@@ -7,7 +7,7 @@ public class CashDispenser {
         this.availableCash = availableCash;
     }
 
-    public TransactionReceipt dispenseCash(Transaction transaction, double amount) {
+    public synchronized TransactionReceipt dispenseCash(Transaction transaction, double amount) {
         if (amount > availableCash) {
             throw new IllegalArgumentException("Insufficient cash available in the ATM...");
         }

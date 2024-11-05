@@ -35,11 +35,11 @@ public class Account {
         this.balance = balance;
     }
 
-    public void debit(double amount) {
+    public synchronized void debit(double amount) {
         balance -= amount;
     }
 
-    public void credit(double amount) {
+    public synchronized void credit(double amount) {
         balance += amount;
     }
 }
