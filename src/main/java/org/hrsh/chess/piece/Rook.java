@@ -17,11 +17,14 @@ public class Rook extends Piece {
 //        51
 
         // validating if moving vertically or horizontally
-        if (srcCell.getRow() != destCell.getRow() || srcCell.getCol() != destCell.getCol()) return false;
+        if (srcCell.getRow() != destCell.getRow() && srcCell.getCol() != destCell.getCol()) return false;
 
         if (isMovingCols(srcCell, destCell)) {
+            int colStart = Math.min(srcCell.getCol(), destCell.getCol());
+            int colEnd = Math.max(srcCell.getCol(), destCell.getCol());
+
             // validating if any blocker piece on the horizontal path
-            for (int i = srcCell.getCol(); i < destCell.getCol(); i++) {
+            for (int i = colStart + 1; i < colEnd; i++) {
                 if (board.getCells()[srcCell.getRow()][i].getPiece() != null) return false;
             }
 
@@ -31,8 +34,11 @@ public class Rook extends Piece {
                 return false;
             }
         } else if (isMovingRows(srcCell, destCell)) {
+            int rowStart = Math.min(srcCell.getRow(), destCell.getRow());
+            int rowEnd = Math.max(srcCell.getRow(), destCell.getRow());
+            
             // validating if any blocker piece on the vertical path
-            for (int i = srcCell.getRow(); i < destCell.getRow(); i++) {
+            for (int i = rowStart + 1; i < rowEnd; i++) {
                 if (board.getCells()[i][srcCell.getCol()].getPiece() != null) return false;
             }
 
@@ -55,6 +61,6 @@ public class Rook extends Piece {
 
     // check if path is vertical
     private boolean isMovingRows(Cell srcCell, Cell destCell) {
-        return srcCell.getCol() == destCell.getCol() && srcCell.getRow() == destCell.getRow();
+        return srcCell.getCol() == destCell.getCol() && srcCell.getRow() != destCell.getRow();
     }
 }

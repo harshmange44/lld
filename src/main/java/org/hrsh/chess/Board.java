@@ -24,7 +24,7 @@ public class Board {
         cells[0][7] = new Cell(0, 7, new Rook(cells[0][7], "ROOK", Color.WHITE));
 
         for (int col = 0; col < 8; col++) {
-            cells[1][col] = new Cell(0, col, new Pawn(cells[1][col], "PAWN", Color.WHITE));
+            cells[1][col] = new Cell(1, col, new Pawn(cells[1][col], "PAWN", Color.WHITE));
         }
 
         cells[7][0] = new Cell(7, 0, new Rook(cells[7][0], "ROOK", Color.BLACK));
@@ -64,6 +64,15 @@ public class Board {
     }
 
     private boolean isValidMove(Move move) {
+        if (move == null || move.getPiece() == null || move.getSrcCell() == null || move.getDestCell() == null) {
+            return false;
+        }
+        
+        // Verify source cell has this piece
+        if (move.getSrcCell().getPiece() != move.getPiece()) {
+            return false;
+        }
+
         if (move.getDestCell().getRow() < 0 || move.getDestCell().getCol() < 0 ||
                 move.getDestCell().getRow() > 7 || move.getDestCell().getCol() > 7) return false;
 

@@ -14,16 +14,29 @@ public class ChessEngine {
     private Status status;
 
     public void initGame(Board board, Player player1, Player player2) {
-        board = new Board();
-        board.init();
-        initPlayers();
-        status = Status.INACTIVE;
+        this.board = board;
+        this.board.init();
+        this.player1 = player1;
+        this.player2 = player2;
+        this.currentPlayer = player1;
+        this.status = Status.INACTIVE;
     }
 
-    private void initPlayers() {
-        player1 = new Player("P1", Color.WHITE, 10);
-        player2 = new Player("P2", Color.BLACK, 10);
-        currentPlayer = player1;
+    /**
+     * Create players for the game
+     * Method for main method to call
+     */
+    private void createBoardPlayers() {
+        this.player1 = new Player("P1", Color.WHITE, 10);
+        this.player2 = new Player("P2", Color.BLACK, 10);
+    }
+    
+    /**
+     * Create board for the game
+     * Method for main method to call
+     */
+    private void createBoard() {
+        this.board = new Board();
     }
 
     public void start() {
@@ -31,6 +44,11 @@ public class ChessEngine {
 
         while (status == Status.ACTIVE && player1.getTimeInMins() > 0 && player2.getTimeInMins() > 0) {
             Move move = getMove(board, currentPlayer);
+            
+            if (move == null) {
+                break;
+            }
+
             board.playMove(move);
 
             if (isGameCompleted()) {
@@ -47,22 +65,24 @@ public class ChessEngine {
 
     private boolean isGameCompleted() {
         if (board.isCheckmate(player1) || board.isStalemate(player1)) {
-            status = Status.BLACK_WIN;
+            status = (player1.getColor() == Color.WHITE) ? Status.BLACK_WIN : Status.WHITE_WIN;
             return true;
         } else if (board.isCheckmate(player2) || board.isStalemate(player2)) {
-            status = Status.WHITE_WIN;
+            status = (player2.getColor() == Color.WHITE) ? Status.BLACK_WIN : Status.WHITE_WIN;
             return true;
         } else if (player1.getTimeInMins() == 0) {
-            status = Status.BLACK_WIN;
+            status = (player1.getColor() == Color.WHITE) ? Status.BLACK_WIN : Status.WHITE_WIN;
             return true;
         } else if (player2.getTimeInMins() == 0) {
-            status = Status.WHITE_WIN;
+            status = (player2.getColor() == Color.WHITE) ? Status.BLACK_WIN : Status.WHITE_WIN;
             return true;
         }
         return false;
     }
 
     private Move getMove(Board board, Player currentPlayer) {
+        // get move from user input
+
         return null;
     }
 }

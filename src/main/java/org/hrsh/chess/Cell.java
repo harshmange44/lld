@@ -18,7 +18,7 @@ public class Cell {
         char[] num = new char[]{'1', '2', '3', '4', '5', '6', '7', '8'};
         char[] chars = new char[]{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'};
 
-        setLabel(String.valueOf(chars[row] + num[col]));
+        setLabel(String.valueOf(chars[row]) + num[col]);
     }
 
     public int getRow() {
