@@ -87,10 +87,129 @@ public class Board {
     }
 
     public boolean isCheckmate(Player player) {
-        return false;
+        Color playerColor = player.getColor();
+        
+        // Checkmate = King is in check AND no legal moves available
+        if (!isKingInCheck(playerColor)) {
+            return false; // Not in check, so not checkmate
+        }
+        
+        // King is in check, now check if any legal move exists
+        return !hasAnyLegalMove(playerColor);
     }
 
     public boolean isStalemate(Player player) {
+        Color playerColor = player.getColor();
+        
+        // Stalemate = King is NOT in check BUT no legal moves available
+        if (isKingInCheck(playerColor)) {
+            return false; // In check, so not stalemate (could be checkmate)
+        }
+        
+        // King not in check, but check if any legal move exists
+        return !hasAnyLegalMove(playerColor);
+    }
+
+    /**
+     * Helper method to find the king of a given color
+     */
+    private Cell findKing(Color color) {
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Cell cell = cells[row][col];
+                Piece piece = cell.getPiece();
+                if (piece != null && 
+                    piece.getName().equals("KING") && 
+                    piece.getColor() == color) {
+                    return cell;
+                }
+            }
+        }
+        return null; // Should never happen in valid game
+    }
+
+    /**
+     * Check if the king of given color is under attack
+     */
+    private boolean isKingInCheck(Color color) {
+        Cell kingCell = findKing(color);
+        if (kingCell == null) return false;
+        
+        Color opponentColor = (color == Color.WHITE) ? Color.BLACK : Color.WHITE;
+        
+        // Check if any opponent piece can attack the king's position
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Cell cell = cells[row][col];
+                Piece piece = cell.getPiece();
+                
+                if (piece != null && piece.getColor() == opponentColor) {
+                    // Check if this opponent piece can move to king's position
+                    if (piece.canMove(this, cell, kingCell)) {
+                        return true; // King is under attack
+                    }
+                }
+            }
+        }
+        
         return false;
+    }
+
+    /**
+     * Check if player has any legal move available
+     * A legal move is one that doesn't leave own king in check
+     */
+    private boolean hasAnyLegalMove(Color color) {
+        // Try all pieces of this color
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Cell srcCell = cells[row][col];
+                Piece piece = srcCell.getPiece();
+                
+                if (piece != null && piece.getColor() == color) {
+                    // Try all possible destination cells
+                    for (int destRow = 0; destRow < 8; destRow++) {
+                        for (int destCol = 0; destCol < 8; destCol++) {
+                            Cell destCell = cells[destRow][destCol];
+                            
+                            // Check if this is a valid move
+                            Move move = new Move(piece, srcCell, destCell);
+                            if (isValidMove(move)) {
+                                // Try the move and check if it leaves king in check
+                                if (isMoveLegal(move, color)) {
+                                    return true; // Found at least one legal move
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return false; // No legal moves found
+    }
+
+    /**
+     * Check if a move is legal (doesn't leave own king in check)
+     * This requires making the move temporarily, checking, then undoing it
+     */
+    private boolean isMoveLegal(Move move, Color playerColor) {
+        // Save the state
+        Piece destPiece = move.getDestCell().getPiece();
+        Piece srcPiece = move.getSrcCell().getPiece();
+        
+        // Make the move temporarily
+        move.getDestCell().setPiece(move.getPiece());
+        move.getSrcCell().setPiece(null);
+        
+        // Check if this leaves the king in check
+        boolean kingStillInCheck = isKingInCheck(playerColor);
+        
+        // Undo the move (restore state)
+        move.getSrcCell().setPiece(srcPiece);
+        move.getDestCell().setPiece(destPiece);
+        
+        // Move is legal if it doesn't leave king in check
+        return !kingStillInCheck;
     }
 }
