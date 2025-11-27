@@ -40,7 +40,7 @@ public class Elevator {
         int noOfPeople = 5;
         int totalWeight = 550;
 
-        if (!isValidRequestCapacity(5, 550)) return;
+        if (!isValidRequestCapacity(noOfPeople, totalWeight)) return;
 
         int sourceFloor = elevatorRequest.getCurrentFloor();
         int targetFloor = elevatorRequest.getDestinationFloor();
@@ -70,11 +70,11 @@ public class Elevator {
         return id;
     }
 
-    public int getCurrentFloor() {
+    public synchronized int getCurrentFloor() {
         return currentFloor;
     }
 
-    public void setCurrentFloor(int currentFloor) {
+    public synchronized void setCurrentFloor(int currentFloor) {
         this.currentFloor = currentFloor;
     }
 
@@ -82,11 +82,11 @@ public class Elevator {
         return elevatorCapacity;
     }
 
-    public Direction getDirection() {
+    public synchronized Direction getDirection() {
         return direction;
     }
 
-    public void setDirection(Direction direction) {
+    public synchronized void setDirection(Direction direction) {
         this.direction = direction;
     }
 
@@ -98,7 +98,11 @@ public class Elevator {
         return towerController;
     }
 
-    public ElevatorStatus getElevatorStatus() {
+    public synchronized ElevatorStatus getElevatorStatus() {
         return elevatorStatus;
+    }
+
+    public synchronized void setElevatorStatus(ElevatorStatus elevatorStatus) {
+        this.elevatorStatus = elevatorStatus;
     }
 }

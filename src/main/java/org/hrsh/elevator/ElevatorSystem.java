@@ -18,8 +18,8 @@ public class ElevatorSystem {
     private List<Elevator> elevatorList;
 
     public ElevatorSystem(int noOfElevators) {
-        noOfElevators = noOfElevators;
-        elevatorList = new ArrayList<>(noOfElevators);
+        this.noOfElevators = noOfElevators;
+        this.elevatorList = new ArrayList<>(noOfElevators);
 
         for (int i = 0; i < noOfElevators; i++) {
             elevatorList.add(new Elevator());
@@ -39,7 +39,7 @@ public class ElevatorSystem {
         optimalElevator.addRequest(new ElevatorRequest(sourceFloor, destinationFloor));
     }
 
-    protected Elevator findOptimalElevator(int sourceFloor, int destinationFloor) {
+    protected synchronized Elevator findOptimalElevator(int sourceFloor, int destinationFloor) {
 
         int minDistance = Integer.MAX_VALUE;
         Elevator optimalElevator = elevatorList.get(0);
