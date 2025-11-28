@@ -8,6 +8,7 @@ public abstract class Transaction {
     private TransactionStatus transactionStatus;
     private double amount;
     private Account account;
+    private boolean executed = false;
 
     public Transaction(TransactionType transactionType, double amount, Account account) {
         this.id = UUID.randomUUID().toString();
@@ -41,5 +42,27 @@ public abstract class Transaction {
         this.transactionStatus = transactionStatus;
     }
 
+    public boolean isExecuted() {
+        return executed;
+    }
+
+    public void setExecuted(boolean executed) {
+        this.executed = executed;
+    }
+
     public abstract void execute();
+    
+    public void rollback() {
+        if (!executed) {
+            return;
+        }
+        
+        if (transactionType == TransactionType.WITHDRAW) {
+            account.credit(amount);
+        } else if (transactionType == TransactionType.DEPOSIT) {
+            account.debit(amount);
+        }
+        
+        this.transactionStatus = TransactionStatus.CANCELLED;
+    }
 }

@@ -8,8 +8,11 @@ public class WithdrawalTransaction extends Transaction {
     @Override
     public void execute() {
         if (getAmount() > getAccount().getBalance()) {
+            setTransactionStatus(TransactionStatus.REJECTED);
             throw new IllegalArgumentException("Insufficient cash available in the Account...");
         }
         getAccount().debit(getAmount());
+        setExecuted(true);
+        setTransactionStatus(TransactionStatus.COMPLETED);
     }
 }

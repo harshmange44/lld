@@ -8,6 +8,7 @@ public class DepositTransaction extends Transaction {
     @Override
     public void execute() {
         getAccount().credit(getAmount());
+        setExecuted(true);
         setTransactionStatus(TransactionStatus.COMPLETED);
     }
 }
