@@ -1,7 +1,10 @@
 package org.hrsh.movieticketbookingsystem;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 public class MovieTicketBookingSystem {
     /*
@@ -15,35 +18,198 @@ public class MovieTicketBookingSystem {
     private final List<Movie> movies;
     private final List<Show> shows;
     private final List<Theatre> theatres;
+    private final Map<String, Booking> bookings;
+    private final Map<String, Reservation> reservations;
+    private final Map<String, List<Seat>> seatReservations;
+    private final Map<User, List<Booking>> userBookingsIndex;
 
     public MovieTicketBookingSystem() {
-        this.movies = new ArrayList<>();
-        this.shows = new ArrayList<>();
-        this.theatres = new ArrayList<>();
+        this.movies = new CopyOnWriteArrayList<>();
+        this.shows = new CopyOnWriteArrayList<>();
+        this.theatres = new CopyOnWriteArrayList<>();
+        this.bookings = new ConcurrentHashMap<>();
+        this.reservations = new ConcurrentHashMap<>();
+        this.seatReservations = new ConcurrentHashMap<>();
+        this.userBookingsIndex = new ConcurrentHashMap<>();
+        
+        // Start cleanup thread for expired reservations
+        startReservationCleanup();
     }
 
-    public void selectSeats(List<Seat> seats) {
-        if (areSeatsAvailable(seats)) {
-            markSeatsAsReserved(seats);
+    /**
+     * Add a movie to the system
+     */
+    public void addMovie(Movie movie) {
+        if (movie == null) {
+            throw new IllegalArgumentException("Movie cannot be null");
         }
+        movies.add(movie);
     }
 
-    public synchronized void markSeatsAsReserved(List<Seat> seats) {
+    /**
+     * Add a show to the system
+     */
+    public void addShow(Show show) {
+        if (show == null) {
+            throw new IllegalArgumentException("Show cannot be null");
+        }
+        if (show.getSeats() == null || show.getSeats().isEmpty()) {
+            throw new IllegalArgumentException("Show must have seats");
+        }
+        shows.add(show);
+    }
+
+    /**
+     * Add a theatre to the system
+     */
+    public void addTheatre(Theatre theatre) {
+        if (theatre == null) {
+            throw new IllegalArgumentException("Theatre cannot be null");
+        }
+        theatres.add(theatre);
+    }
+
+    /**
+     * Search shows by movie, location, and date
+     */
+    public List<Show> searchShows(Movie movie, Location location, LocalDateTime date) {
+        if (movie == null || location == null || date == null) {
+            throw new IllegalArgumentException("Search parameters cannot be null");
+        }
+        
+        return shows.stream()
+                .filter(show -> show.getMovie().equals(movie))
+                .filter(show -> show.getTheatre().getLocation().equals(location))
+                .filter(show -> show.getShowStartTime().toLocalDate().equals(date.toLocalDate()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get available seats for a show
+     */
+    public List<Seat> getAvailableSeats(Show show) {
+        if (show == null) {
+            throw new IllegalArgumentException("Show cannot be null");
+        }
+        
+        return show.getSeats().stream()
+                .filter(seat -> seat.getSeatStatus() == SeatStatus.AVAILABLE)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Select and reserve seats for 15 minutes
+     */
+    public synchronized Reservation selectSeats(User user, Show show, List<Seat> seats) {
+        if (user == null || show == null || seats == null || seats.isEmpty()) {
+            throw new IllegalArgumentException("Invalid parameters");
+        }
+
+        // Validate seats belong to the show
+        if (!validateSeatsBelongToShow(show, seats)) {
+            throw new IllegalArgumentException("Seats do not belong to this show");
+        }
+
+        // Check if seats are available
+        if (!areSeatsAvailable(show, seats)) {
+            throw new IllegalArgumentException("Seats are not available");
+        }
+
+        // Create reservation
+        Reservation reservation = new Reservation(user, show, seats);
+        reservations.put(reservation.getId(), reservation);
+        
+        // Mark seats as reserved
+        markSeatsAsReserved(seats);
+        
+        // Track seat reservations
         for (Seat seat : seats) {
-            seat.setSeatStatus(SeatStatus.RESERVED);
+            seatReservations.put(seat.getId(), seats);
         }
+
+        return reservation;
     }
 
-    public synchronized Booking bookTickets(Show show, List<Seat> seats) {
-        if (areSeatsReserved(seats)) {
-            markSeatsAsBooked(seats);
-            double totalPrice = calcTotalPrice(seats);
-            return new Booking(new User(), show, seats, totalPrice, BookingStatus.PENDING);
+    /**
+     * Get reservation by ID
+     */
+    public Reservation getReservation(String reservationId) {
+        if (reservationId == null) {
+            throw new IllegalArgumentException("Reservation ID cannot be null");
         }
-        return null;
+        return reservations.get(reservationId);
     }
 
-    public synchronized boolean confirmBooking(Booking booking) {
+    /**
+     * Book tickets from a reservation
+     */
+    public synchronized Booking bookTickets(String reservationId) {
+        if (reservationId == null) {
+            throw new IllegalArgumentException("Reservation ID cannot be null");
+        }
+        
+        Reservation reservation = reservations.get(reservationId);
+        
+        if (reservation == null) {
+            throw new IllegalArgumentException("Reservation not found");
+        }
+
+        // Check if reservation expired
+        if (reservation.isExpired()) {
+            releaseReservation(reservation);
+            throw new IllegalStateException("Reservation has expired");
+        }
+
+        // Validate seats are still reserved
+        if (!areSeatsReserved(reservation.getSeats())) {
+            releaseReservation(reservation);
+            throw new IllegalStateException("Seats are no longer reserved");
+        }
+
+        // Mark seats as booked
+        markSeatsAsBooked(reservation.getSeats());
+        
+        // Calculate total price
+        double totalPrice = calcTotalPrice(reservation.getSeats());
+        
+        // Create booking
+        Booking booking = new Booking(
+            reservation.getUser(),
+            reservation.getShow(),
+            reservation.getSeats(),
+            totalPrice,
+            BookingStatus.PENDING
+        );
+        
+        // Store booking
+        bookings.put(booking.getId(), booking);
+        
+        // Update user bookings index
+        userBookingsIndex.computeIfAbsent(reservation.getUser(), k -> new ArrayList<>()).add(booking);
+        
+        // Remove reservation and clean up tracking
+        reservations.remove(reservationId);
+        for (Seat seat : reservation.getSeats()) {
+            seatReservations.remove(seat.getId());
+        }
+
+        return booking;
+    }
+
+    /**
+     * Confirm booking (after payment)
+     */
+    public synchronized boolean confirmBooking(String bookingId) {
+        if (bookingId == null) {
+            throw new IllegalArgumentException("Booking ID cannot be null");
+        }
+        
+        Booking booking = bookings.get(bookingId);
+        
+        if (booking == null) {
+            return false;
+        }
+
         if (booking.getBookingStatus() == BookingStatus.PENDING) {
             booking.setBookingStatus(BookingStatus.SUCCESSFUL);
             return true;
@@ -51,7 +217,20 @@ public class MovieTicketBookingSystem {
         return false;
     }
 
-    public synchronized boolean cancelBooking(Booking booking) {
+    /**
+     * Cancel booking
+     */
+    public synchronized boolean cancelBooking(String bookingId) {
+        if (bookingId == null) {
+            throw new IllegalArgumentException("Booking ID cannot be null");
+        }
+        
+        Booking booking = bookings.get(bookingId);
+        
+        if (booking == null) {
+            return false;
+        }
+
         if (booking.getBookingStatus() == BookingStatus.SUCCESSFUL) {
             booking.setBookingStatus(BookingStatus.CANCELLED);
             markSeatsAsAvailable(booking.getSelectedSeats());
@@ -60,7 +239,35 @@ public class MovieTicketBookingSystem {
         return false;
     }
 
-    private void markSeatsAsAvailable(List<Seat> selectedSeats) {
+    /**
+     * Get booking by ID
+     */
+    public Booking getBooking(String bookingId) {
+        if (bookingId == null) {
+            return null;
+        }
+        return bookings.get(bookingId);
+    }
+
+    /**
+     * Get user's bookings
+     */
+    public List<Booking> getUserBookings(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("User cannot be null");
+        }
+        return new ArrayList<>(userBookingsIndex.getOrDefault(user, Collections.emptyList()));
+    }
+
+    // Private helper methods
+
+    private synchronized void markSeatsAsReserved(List<Seat> seats) {
+        for (Seat seat : seats) {
+            seat.setSeatStatus(SeatStatus.RESERVED);
+        }
+    }
+
+    private synchronized void markSeatsAsAvailable(List<Seat> selectedSeats) {
         for (Seat seat : selectedSeats) {
             seat.setSeatStatus(SeatStatus.AVAILABLE);
         }
@@ -70,23 +277,97 @@ public class MovieTicketBookingSystem {
         return seats.stream().mapToDouble(Seat::getPrice).sum();
     }
 
-    private boolean areSeatsAvailable(List<Seat> seats) {
+    private synchronized boolean areSeatsAvailable(Show show, List<Seat> seats) {
+        // Validate seats belong to show
+        if (!validateSeatsBelongToShow(show, seats)) {
+            return false;
+        }
+
+        // Check if seats are available
         for (Seat seat : seats) {
-            if (seat != null && seat.getSeatStatus() != SeatStatus.AVAILABLE) return false;
+            if (seat == null || seat.getSeatStatus() != SeatStatus.AVAILABLE) {
+                return false;
+            }
         }
         return true;
     }
 
-    private boolean areSeatsReserved(List<Seat> seats) {
+    private synchronized boolean areSeatsReserved(List<Seat> seats) {
         for (Seat seat : seats) {
-            if (seat != null && seat.getSeatStatus() != SeatStatus.RESERVED) return false;
+            if (seat == null || seat.getSeatStatus() != SeatStatus.RESERVED) {
+                return false;
+            }
         }
         return true;
     }
 
-    private void markSeatsAsBooked(List<Seat> seats) {
+    private synchronized void markSeatsAsBooked(List<Seat> seats) {
         for (Seat seat : seats) {
             seat.setSeatStatus(SeatStatus.OCCUPIED);
         }
+    }
+
+    private boolean validateSeatsBelongToShow(Show show, List<Seat> requestedSeats) {
+        List<Seat> showSeats = show.getSeats();
+        Set<String> showSeatIds = showSeats.stream()
+                .map(Seat::getId)
+                .collect(Collectors.toSet());
+
+        return requestedSeats.stream()
+                .allMatch(seat -> showSeatIds.contains(seat.getId()));
+    }
+
+    private synchronized void releaseReservation(Reservation reservation) {
+        for (Seat seat : reservation.getSeats()) {
+            // Only release if seat is still RESERVED (not already OCCUPIED)
+            if (seat.getSeatStatus() == SeatStatus.RESERVED) {
+                seat.setSeatStatus(SeatStatus.AVAILABLE);
+            }
+            seatReservations.remove(seat.getId());
+        }
+        reservations.remove(reservation.getId());
+    }
+
+    private void startReservationCleanup() {
+        Thread cleanupThread = new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(60000); // Check every minute
+                    cleanupExpiredReservations();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        });
+        cleanupThread.setDaemon(true);
+        cleanupThread.start();
+    }
+
+    private synchronized void cleanupExpiredReservations() {
+        List<String> expiredIds = reservations.values().stream()
+                .filter(Reservation::isExpired)
+                .map(Reservation::getId)
+                .collect(Collectors.toList());
+
+        for (String id : expiredIds) {
+            Reservation reservation = reservations.get(id);
+            if (reservation != null) {
+                releaseReservation(reservation);
+            }
+        }
+    }
+
+    // Getters
+    public List<Movie> getMovies() {
+        return new ArrayList<>(movies);
+    }
+
+    public List<Show> getShows() {
+        return new ArrayList<>(shows);
+    }
+
+    public List<Theatre> getTheatres() {
+        return new ArrayList<>(theatres);
     }
 }
