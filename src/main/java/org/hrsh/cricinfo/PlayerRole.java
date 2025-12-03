@@ -4,5 +4,5 @@ public enum PlayerRole {
     BATTER,
     BOWLER,
     ALL_ROUNDER,
-    KIPPER
+    WICKET_KEEPER
 }

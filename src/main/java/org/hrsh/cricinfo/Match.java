@@ -1,6 +1,7 @@
 package org.hrsh.cricinfo;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,10 +20,18 @@ public class Match {
         this.venue = venue;
         this.startTime = startTime;
         this.matchStatus = MatchStatus.SCHEDULED;
+        this.teams = new ArrayList<>(); // Fixed: Initialize teams list
         this.scorecard = new Scorecard(this);
     }
 
     public void initTeams(Team team1, Team team2) {
+        if (team1 == null || team2 == null) {
+            throw new IllegalArgumentException("Teams cannot be null");
+        }
+        if (teams.size() >= 2) {
+            throw new IllegalStateException("Teams already initialized");
+        }
+        teams.clear();
         teams.add(team1);
         teams.add(team2);
     }
@@ -56,11 +65,14 @@ public class Match {
     }
 
     public List<Team> getTeams() {
-        return teams;
+        return new ArrayList<>(teams); // Return defensive copy
     }
 
     public void setTeams(List<Team> teams) {
-        this.teams = teams;
+        if (teams == null || teams.size() != 2) {
+            throw new IllegalArgumentException("Match must have exactly 2 teams");
+        }
+        this.teams = new ArrayList<>(teams);
     }
 
     public MatchStatus getMatchStatus() {
