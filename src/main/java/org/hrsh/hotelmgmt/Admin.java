@@ -1,23 +1,10 @@
 package org.hrsh.hotelmgmt;
 
 public class Admin extends User {
-    public void addRoom(Room room) {
-
+    public Admin(String name, String phone, Account account) {
+        super(name, phone, account);
     }
 
-    public void updateRoom(String roomId, Room room) {
-
-    }
-
-    public void deleteRoom(String roomId) {
-
-    }
-
-    public boolean issueKey(RoomKey roomKey) {
-        return true;
-    }
-
-    public boolean updateKeyStatus(RoomKey roomKey, boolean isActive) {
-        return true;
-    }
+    // Room management methods would be called through HotelManagementSystem
+    // Keeping this class for future extension if needed
 }

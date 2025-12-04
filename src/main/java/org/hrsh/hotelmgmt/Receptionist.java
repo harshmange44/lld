@@ -1,28 +1,22 @@
 package org.hrsh.hotelmgmt;
 
-import java.util.List;
-
 public class Receptionist extends User {
     private int totalRoomsCheckedIn;
 
-    public BookingInfo bookRoom(List<RoomBooking> roomBookings) {
-        BookingInfo bookingInfo = new BookingInfo(
-                "B1",
-                "T1",
-                new Invoice(0, 0, 0, PaymentMethod.CREDIT_CARD),
-                PaymentStatus.PENDING);
-        return bookingInfo;
+    public Receptionist(String name, String phone, Account account) {
+        super(name, phone, account);
+        this.totalRoomsCheckedIn = 0;
     }
 
-    public boolean cancelBooking(String bookingId) {
-        return true;
+    public int getTotalRoomsCheckedIn() {
+        return totalRoomsCheckedIn;
     }
 
-    public boolean checkIn(RoomBooking roomBooking, Guest guest) {
-        return true;
+    public void setTotalRoomsCheckedIn(int totalRoomsCheckedIn) {
+        this.totalRoomsCheckedIn = totalRoomsCheckedIn;
     }
 
-    public boolean checkOut(RoomBooking roomBooking, Guest guest) {
-        return true;
+    public void incrementCheckedInCount() {
+        this.totalRoomsCheckedIn++;
     }
 }
