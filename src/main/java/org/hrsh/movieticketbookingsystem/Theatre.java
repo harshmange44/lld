@@ -1,6 +1,8 @@
 package org.hrsh.movieticketbookingsystem;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Theatre {
     private String id;
@@ -12,6 +14,7 @@ public class Theatre {
         this.id = id;
         this.name = name;
         this.location = location;
+        this.shows = new CopyOnWriteArrayList<>(); // Thread-safe
     }
 
     public String getId() {
@@ -39,10 +42,23 @@ public class Theatre {
     }
 
     public List<Show> getShows() {
-        return shows;
+        return shows; // Return directly as CopyOnWriteArrayList is thread-safe
     }
 
     public void setShows(List<Show> shows) {
-        this.shows = shows;
+        this.shows = shows != null ? new CopyOnWriteArrayList<>(shows) : new CopyOnWriteArrayList<>();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Theatre theatre = (Theatre) o;
+        return Objects.equals(id, theatre.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

@@ -20,8 +20,9 @@ public class MovieTicketBookingSystem {
     private final List<Theatre> theatres;
     private final Map<String, Booking> bookings;
     private final Map<String, Reservation> reservations;
-    private final Map<String, List<Seat>> seatReservations;
+    private final Map<String, String> seatToReservationMap; // seatId -> reservationId (improved structure)
     private final Map<User, List<Booking>> userBookingsIndex;
+    private final NotificationService notificationService;
 
     public MovieTicketBookingSystem() {
         this.movies = new CopyOnWriteArrayList<>();
@@ -29,11 +30,15 @@ public class MovieTicketBookingSystem {
         this.theatres = new CopyOnWriteArrayList<>();
         this.bookings = new ConcurrentHashMap<>();
         this.reservations = new ConcurrentHashMap<>();
-        this.seatReservations = new ConcurrentHashMap<>();
+        this.seatToReservationMap = new ConcurrentHashMap<>(); // Improved: seatId -> reservationId
         this.userBookingsIndex = new ConcurrentHashMap<>();
+        this.notificationService = new NotificationService();
         
         // Start cleanup thread for expired reservations
         startReservationCleanup();
+        
+        // Start notification service
+        notificationService.startNotificationService(reservations);
     }
 
     /**
@@ -122,10 +127,14 @@ public class MovieTicketBookingSystem {
         // Mark seats as reserved
         markSeatsAsReserved(seats);
         
-        // Track seat reservations
+        // Track seat to reservation mapping
         for (Seat seat : seats) {
-            seatReservations.put(seat.getId(), seats);
+            seatToReservationMap.put(seat.getId(), reservation.getId());
         }
+
+        // Send notification
+        notificationService.sendNotification(user, NotificationType.OTHER,
+                "Seats reserved. Reservation expires in " + Reservation.RESERVATION_TIMEOUT_MINUTES + " minutes.");
 
         return reservation;
     }
@@ -190,8 +199,12 @@ public class MovieTicketBookingSystem {
         // Remove reservation and clean up tracking
         reservations.remove(reservationId);
         for (Seat seat : reservation.getSeats()) {
-            seatReservations.remove(seat.getId());
+            seatToReservationMap.remove(seat.getId());
         }
+
+        // Send notification
+        notificationService.sendNotification(reservation.getUser(), NotificationType.BOOKING_CONFIRMED,
+                "Booking created. Booking ID: " + booking.getId() + ". Total: $" + booking.getTotalPrice());
 
         return booking;
     }
@@ -212,6 +225,12 @@ public class MovieTicketBookingSystem {
 
         if (booking.getBookingStatus() == BookingStatus.PENDING) {
             booking.setBookingStatus(BookingStatus.SUCCESSFUL);
+            
+            // Send notification
+            notificationService.sendNotification(booking.getUser(), NotificationType.BOOKING_CONFIRMED,
+                    "Booking confirmed successfully. Show: " + booking.getShow().getMovie().getTitle() 
+                    + " at " + booking.getShow().getShowStartTime());
+            
             return true;
         }
         return false;
@@ -234,6 +253,11 @@ public class MovieTicketBookingSystem {
         if (booking.getBookingStatus() == BookingStatus.SUCCESSFUL) {
             booking.setBookingStatus(BookingStatus.CANCELLED);
             markSeatsAsAvailable(booking.getSelectedSeats());
+            
+            // Send notification
+            notificationService.sendNotification(booking.getUser(), NotificationType.BOOKING_CANCELLED,
+                    "Booking cancelled. Refund will be processed.");
+            
             return true;
         }
         return false;
@@ -323,8 +347,13 @@ public class MovieTicketBookingSystem {
             if (seat.getSeatStatus() == SeatStatus.RESERVED) {
                 seat.setSeatStatus(SeatStatus.AVAILABLE);
             }
-            seatReservations.remove(seat.getId());
+            seatToReservationMap.remove(seat.getId());
         }
+        
+        // Send notification about expiry
+        notificationService.sendNotification(reservation.getUser(), NotificationType.RESERVATION_EXPIRY,
+                "Your reservation has expired. Seats have been released.");
+        
         reservations.remove(reservation.getId());
     }
 
@@ -369,5 +398,25 @@ public class MovieTicketBookingSystem {
 
     public List<Theatre> getTheatres() {
         return new ArrayList<>(theatres);
+    }
+
+    /**
+     * Get notifications for a user
+     */
+    public List<Notification> getUserNotifications(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("User cannot be null");
+        }
+        return notificationService.getNotifications(user.getId());
+    }
+
+    /**
+     * Mark notification as read
+     */
+    public void markNotificationAsRead(User user, String notificationId) {
+        if (user == null || notificationId == null) {
+            throw new IllegalArgumentException("User and notification ID cannot be null");
+        }
+        notificationService.markAsRead(user.getId(), notificationId);
     }
 }

@@ -10,7 +10,7 @@ public class Reservation {
     private Show show;
     private List<Seat> seats;
     private LocalDateTime reservedAt;
-    private static final int RESERVATION_TIMEOUT_MINUTES = 15;
+    public static final int RESERVATION_TIMEOUT_MINUTES = 15;
 
     public Reservation(User user, Show show, List<Seat> seats) {
         this.id = UUID.randomUUID().toString();
