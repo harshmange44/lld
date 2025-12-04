@@ -9,6 +9,7 @@ public class BookLending {
     private LocalDateTime borrowedAt;
     private LocalDateTime dueDate;
     private String memberId;
+    private LocalDateTime returnedAt;
 
     public BookLending() {
         this.id = UUID.randomUUID().toString();
@@ -22,9 +23,8 @@ public class BookLending {
         this.memberId = memberId;
     }
 
-    public BookLending lendBook(String bookItemBarcode, String memberId) {
-        LocalDateTime borrowedAt = LocalDateTime.now();
-        return new BookLending(bookItemBarcode, borrowedAt, borrowedAt.plusDays(Constants.DEFAULT_RETURN_DAYS), memberId);
+    public String getId() {
+        return id;
     }
 
     public String getBookItemBarcode() {
@@ -57,5 +57,13 @@ public class BookLending {
 
     public void setMemberId(String memberId) {
         this.memberId = memberId;
+    }
+
+    public LocalDateTime getReturnedAt() {
+        return returnedAt;
+    }
+
+    public void setReturnedAt(LocalDateTime returnedAt) {
+        this.returnedAt = returnedAt;
     }
 }

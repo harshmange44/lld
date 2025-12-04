@@ -1,35 +1,28 @@
 package org.hrsh.librarymgmt;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class Member extends User {
+    private String id;
     private MemberCard memberCard;
     private int totalBooksCheckedOut;
     private LocalDateTime membershipCreatedAt;
-    private final PaymentService paymentService;
 
-    public Member(MemberCard memberCard) {
+    public Member(String name, String phone, Account account, MemberCard memberCard) {
+        super(name, phone, account);
+        this.id = UUID.randomUUID().toString();
         this.memberCard = memberCard;
         this.totalBooksCheckedOut = 0;
         this.membershipCreatedAt = LocalDateTime.now();
-        this.paymentService = new PaymentService();
     }
 
-    public BookLending checkoutBook(BookItem bookItem) {
-        BookLending bookLending = new BookLending();
-        return bookLending.lendBook(bookItem.getBarcode(), getMemberCard().getBarcode());
+    public String getId() {
+        return id;
     }
 
-    public boolean returnBook(BookItem bookItem) {
-        return true;
-    }
-
-    public boolean renewBook(BookItem bookItem) {
-        return true;
-    }
-
-    public Fine checkForFine(BookItem bookItem) {
-        return new Fine();
+    public void setId(String id) {
+        this.id = id;
     }
 
     public MemberCard getMemberCard() {

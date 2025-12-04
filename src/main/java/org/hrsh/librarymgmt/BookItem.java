@@ -11,6 +11,16 @@ public class BookItem extends Book {
     private LocalDateTime publishedAt;
     private Rack placedAt;
 
+    public BookItem(Book book, String barcode, double price, Rack placedAt) {
+        super(book.getIsbn(), book.getTitle(), book.getCategory(), book.getAuthor(), book.getBookType(), book.getNoOfPages());
+        this.barcode = barcode;
+        this.price = price;
+        this.placedAt = placedAt;
+        this.bookItemStatus = BookItemStatus.AVAILABLE;
+        this.isReferenceOnly = false;
+        this.purchasedAt = LocalDateTime.now();
+    }
+
     public String getBarcode() {
         return barcode;
     }
