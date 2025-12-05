@@ -1,5 +1,7 @@
 package org.hrsh.linkedin;
 
+import java.util.UUID;
+
 public class User {
     private String id;
     private String name;
@@ -7,6 +9,13 @@ public class User {
     private Media profilePhoto;
     private Location location;
     private Account account;
+
+    public User(String name, String phone, Account account) {
+        this.id = UUID.randomUUID().toString();
+        this.name = name;
+        this.phone = phone;
+        this.account = account;
+    }
 
     public String getId() {
         return id;
@@ -30,6 +39,14 @@ public class User {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public Media getProfilePhoto() {
+        return profilePhoto;
+    }
+
+    public void setProfilePhoto(Media profilePhoto) {
+        this.profilePhoto = profilePhoto;
     }
 
     public Location getLocation() {

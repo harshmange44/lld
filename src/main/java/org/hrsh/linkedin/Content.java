@@ -1,6 +1,7 @@
 package org.hrsh.linkedin;
 
 import java.math.BigInteger;
+import java.util.UUID;
 
 public class Content {
     private String id;
@@ -10,8 +11,17 @@ public class Content {
     private Member createdBy;
     private BigInteger noOfLikes;
 
+    public Content() {
+        this.id = UUID.randomUUID().toString();
+        this.noOfLikes = BigInteger.ZERO;
+    }
+
     public String getId() {
         return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getText() {

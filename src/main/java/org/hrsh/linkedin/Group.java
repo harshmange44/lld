@@ -2,6 +2,8 @@ package org.hrsh.linkedin;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Group {
     private String id;
@@ -13,13 +15,36 @@ public class Group {
     private Date createdAt;
     private Date updatedAt;
 
-    public void addMember(Member member) {
-        this.members.add(member);
-        this.totalMembers++;
+    public Group(String name, String desc) {
+        this.id = UUID.randomUUID().toString();
+        this.name = name;
+        this.desc = desc;
+        this.totalMembers = 0;
+        this.members = new CopyOnWriteArrayList<>(); // Thread-safe
+        this.createdAt = new Date();
+        this.updatedAt = new Date();
+    }
+
+    public synchronized void addMember(Member member) {
+        if (member == null) {
+            throw new IllegalArgumentException("Member cannot be null");
+        }
+        if (this.members == null) {
+            this.members = new CopyOnWriteArrayList<>();
+        }
+        if (!this.members.contains(member)) {
+            this.members.add(member);
+            this.totalMembers++;
+            this.updatedAt = new Date();
+        }
     }
 
     public String getId() {
         return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -47,11 +72,12 @@ public class Group {
     }
 
     public List<Member> getMembers() {
-        return members;
+        return new ArrayList<>(members); // Return defensive copy
     }
 
     public void setMembers(List<Member> members) {
-        this.members = members;
+        this.members = members != null ? new CopyOnWriteArrayList<>(members) : new CopyOnWriteArrayList<>();
+        this.totalMembers = this.members.size();
     }
 
     public Member getCreatedBy() {
