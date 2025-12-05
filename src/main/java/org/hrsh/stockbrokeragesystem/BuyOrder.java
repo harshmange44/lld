@@ -1,7 +1,5 @@
 package org.hrsh.stockbrokeragesystem;
 
-import java.time.LocalDateTime;
-
 public class BuyOrder extends Order {
     public BuyOrder(Account account, Stock stock, int quantity, double totalPrice) {
         super(account, stock, quantity, totalPrice);
@@ -9,23 +7,8 @@ public class BuyOrder extends Order {
 
     @Override
     public boolean execute() {
-        setExecutedAt(LocalDateTime.now());
-        Account account = getAccount();
-        if (getTotalPrice() > account.getBalance()) {
-            setOrderStatus(OrderStatus.CANCELLED);
-            throw new InsufficientFundsException(String.format("Insufficient funds in the Account: %s", getTotalPrice() - account.getBalance()));
-        }
-
-        account.debit(getTotalPrice());
-        Portfolio portfolio = account.getPortfolio();
-
-        try {
-            portfolio.addStock(getStock().getId(), getQuantity());
-            setOrderStatus(OrderStatus.EXECUTED);
-        } catch (Exception e) {
-            setOrderStatus(OrderStatus.CANCELLED);
-            e.printStackTrace();
-        }
-        return true;
+        // Execution is now handled by OrderExecutionService
+        // This method is kept for backward compatibility but should not be called directly
+        throw new UnsupportedOperationException("Order execution should be handled by OrderExecutionService");
     }
 }

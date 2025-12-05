@@ -1,10 +1,27 @@
 package org.hrsh.stockbrokeragesystem;
 
+import java.util.UUID;
+
 public class User {
     private String id;
     private String name;
     private String email;
     private String phone;
+
+    public User(String name, String email, String phone) {
+        this.id = UUID.randomUUID().toString();
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;

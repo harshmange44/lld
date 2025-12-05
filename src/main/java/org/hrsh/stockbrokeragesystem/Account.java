@@ -1,5 +1,7 @@
 package org.hrsh.stockbrokeragesystem;
 
+import java.util.UUID;
+
 public class Account {
     private String id;
     private User user;
@@ -7,6 +9,7 @@ public class Account {
     private double balance;
 
     public Account(User user, Portfolio portfolio, double balance) {
+        this.id = UUID.randomUUID().toString();
         this.user = user;
         this.portfolio = portfolio;
         this.balance = balance;
@@ -14,6 +17,10 @@ public class Account {
 
     public String getId() {
         return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public User getUser() {
@@ -41,10 +48,16 @@ public class Account {
     }
 
     public synchronized void debit(double amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Debit amount cannot be negative");
+        }
         balance -= amount;
     }
 
     public synchronized void credit(double amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Credit amount cannot be negative");
+        }
         balance += amount;
     }
 }

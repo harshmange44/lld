@@ -1,7 +1,5 @@
 package org.hrsh.stockbrokeragesystem;
 
-import java.time.LocalDateTime;
-
 public class SellOrder extends Order {
     public SellOrder(Account account, Stock stock, int quantity, double totalPrice) {
         super(account, stock, quantity, totalPrice);
@@ -9,17 +7,8 @@ public class SellOrder extends Order {
 
     @Override
     public boolean execute() {
-        setExecutedAt(LocalDateTime.now());
-        Account account = getAccount();
-        account.credit(getTotalPrice());
-        Portfolio portfolio = account.getPortfolio();
-        try {
-            portfolio.removeStock(getStock().getId(), getQuantity());
-            setOrderStatus(OrderStatus.EXECUTED);
-        } catch (Exception e) {
-            setOrderStatus(OrderStatus.CANCELLED);
-            e.printStackTrace();
-        }
-        return true;
+        // Execution is now handled by OrderExecutionService
+        // This method is kept for backward compatibility but should not be called directly
+        throw new UnsupportedOperationException("Order execution should be handled by OrderExecutionService");
     }
 }
