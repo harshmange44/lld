@@ -6,6 +6,7 @@ import org.hrsh.vehiclerental.vehicle.Vehicle;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 public class Reservation {
     private String id;
@@ -15,7 +16,22 @@ public class Reservation {
     private Member member;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+    private LocalDateTime actualReturnDate; // Added for tracking
     private double totalPrice;
+    private ReservationStatus reservationStatus;
+
+    public Reservation() {
+        this.id = UUID.randomUUID().toString();
+        this.reservationStatus = ReservationStatus.PENDING;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public Vehicle getVehicle() {
         return vehicle;
@@ -65,11 +81,27 @@ public class Reservation {
         this.endDate = endDate;
     }
 
+    public LocalDateTime getActualReturnDate() {
+        return actualReturnDate;
+    }
+
+    public void setActualReturnDate(LocalDateTime actualReturnDate) {
+        this.actualReturnDate = actualReturnDate;
+    }
+
     public double getTotalPrice() {
         return totalPrice;
     }
 
     public void setTotalPrice(double totalPrice) {
         this.totalPrice = totalPrice;
+    }
+
+    public ReservationStatus getReservationStatus() {
+        return reservationStatus;
+    }
+
+    public void setReservationStatus(ReservationStatus reservationStatus) {
+        this.reservationStatus = reservationStatus;
     }
 }

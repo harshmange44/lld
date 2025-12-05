@@ -1,6 +1,7 @@
 package org.hrsh.vehiclerental;
 
 import java.util.List;
+import java.util.UUID;
 
 public class BillReceipt {
     private String id;
@@ -8,8 +9,17 @@ public class BillReceipt {
     private List<Invoice> invoiceList;
 
     public BillReceipt(double totalAmount, List<Invoice> invoiceList) {
+        this.id = UUID.randomUUID().toString();
         this.totalAmount = totalAmount;
-        this.invoiceList = invoiceList;
+        this.invoiceList = invoiceList != null ? invoiceList : List.of();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public double getTotalAmount() {
@@ -25,6 +35,6 @@ public class BillReceipt {
     }
 
     public void setInvoiceList(List<Invoice> invoiceList) {
-        this.invoiceList = invoiceList;
+        this.invoiceList = invoiceList != null ? invoiceList : List.of();
     }
 }
