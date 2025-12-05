@@ -9,11 +9,15 @@ public class Spot {
     public Spot(String id, SpotType spotType, SpotStatus spotStatus, Vehicle assignedVehicle) {
         this.id = id;
         this.spotType = spotType;
-        this.spotStatus = spotStatus;
+        this.spotStatus = spotStatus != null ? spotStatus : SpotStatus.AVAILABLE;
         this.assignedVehicle = assignedVehicle;
     }
 
-    public boolean assignVehicle(Vehicle vehicle) {
+    public synchronized boolean assignVehicle(Vehicle vehicle) {
+        if (vehicle == null) {
+            return false;
+        }
+        
         if (spotStatus == SpotStatus.AVAILABLE && isValidSpotType(vehicle)) {
             this.assignedVehicle = vehicle;
             this.spotStatus = SpotStatus.OCCUPIED;
@@ -23,17 +27,49 @@ public class Spot {
         return false;
     }
 
-    public boolean freeVehicle() {
+    public synchronized boolean freeVehicle() {
+        if (assignedVehicle == null) {
+            return false; // No vehicle assigned
+        }
+        
         this.spotStatus = SpotStatus.AVAILABLE;
-        this.assignedVehicle.setAssignedSpot(null);
+        if (assignedVehicle != null) {
+            assignedVehicle.setAssignedSpot(null);
+        }
         this.assignedVehicle = null;
         return true;
     }
 
     private boolean isValidSpotType(Vehicle vehicle) {
-        if (vehicle.isElectricVehicle() && !(this instanceof ElectricVehicleSpot)) return false;
+        if (vehicle == null) {
+            return false;
+        }
+        
+        // Electric vehicles need electric spots
+        if (vehicle.isElectricVehicle() && !(this instanceof ElectricVehicleSpot)) {
+            return false;
+        }
 
-        if (vehicle.getVehicleType() == VehicleType.CAR && (spotType == SpotType.MOTORCYCLE || spotType == SpotType.HANDICAPPED)) {
+        // Check spot type compatibility with vehicle type
+        VehicleType vehicleType = vehicle.getVehicleType();
+        if (vehicleType == null) {
+            return false;
+        }
+
+        // Cars cannot park in motorcycle or handicapped spots (unless it's handicapped)
+        if (vehicleType == VehicleType.CAR && 
+            (spotType == SpotType.MOTORCYCLE)) {
+            return false;
+        }
+
+        // Motorcycles can only park in motorcycle spots
+        if (vehicleType == VehicleType.MOTORCYCLE && spotType != SpotType.MOTORCYCLE) {
+            return false;
+        }
+
+        // Large vehicles need large spots
+        if ((vehicleType == VehicleType.TRUCK || vehicleType == VehicleType.BUS) 
+            && spotType != SpotType.LARGE) {
             return false;
         }
 

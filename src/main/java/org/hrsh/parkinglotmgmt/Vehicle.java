@@ -7,8 +7,19 @@ public class Vehicle {
     private boolean isElectricVehicle;
     private Spot assignedSpot;
 
+    public Vehicle(String name, String number, VehicleType vehicleType, boolean isElectricVehicle) {
+        this.name = name;
+        this.number = number;
+        this.vehicleType = vehicleType;
+        this.isElectricVehicle = isElectricVehicle;
+    }
+
     public boolean isElectricVehicle() {
         return isElectricVehicle;
+    }
+
+    public void setElectricVehicle(boolean electricVehicle) {
+        isElectricVehicle = electricVehicle;
     }
 
     public String getName() {

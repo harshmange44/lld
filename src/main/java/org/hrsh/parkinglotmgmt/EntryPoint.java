@@ -13,7 +13,15 @@ public class EntryPoint {
         this.displayPanel = displayPanel;
     }
 
+    public String getId() {
+        return id;
+    }
+
     public ParkingTicket generateParkingTicket(Vehicle vehicle, String customerName) {
+        if (vehicle == null || customerName == null || customerName.isEmpty()) {
+            throw new IllegalArgumentException("Vehicle and customer name are required");
+        }
+        
         ParkingTicket parkingTicket = new ParkingTicket();
         parkingTicket.setCustomerName(customerName);
         parkingTicket.setVehicle(vehicle);
@@ -22,8 +30,24 @@ public class EntryPoint {
     }
 
     public String showTotalAvailableSpots(List<Floor> floors) {
-        int totalSpots = floors.stream().mapToInt(Floor::getAvailableSpots).sum();
-        displayPanel.setDisplayMessage(String.format("Total available spots -> %s", totalSpots));
-        return displayPanel.getDisplayMessage();
+        if (floors == null || floors.isEmpty()) {
+            return "No floors available";
+        }
+        
+        int totalSpots = floors.stream()
+                .mapToInt(Floor::getAvailableSpots)
+                .sum();
+        
+        String message = String.format("Total available spots: %s", totalSpots);
+        
+        if (displayPanel != null) {
+            displayPanel.setDisplayMessage(message);
+        }
+        
+        return message;
+    }
+
+    public DisplayPanel getDisplayPanel() {
+        return displayPanel;
     }
 }

@@ -8,9 +8,15 @@ public class ParkingTicket {
     private String customerName;
     private Date entryDateTime;
     private Vehicle vehicle;
+    private Spot spot;
+    private EntryPoint entryPoint;
 
     public ParkingTicket() {
         this.id = UUID.randomUUID().toString();
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getCustomerName() {
@@ -35,5 +41,21 @@ public class ParkingTicket {
 
     public void setVehicle(Vehicle vehicle) {
         this.vehicle = vehicle;
+    }
+
+    public Spot getSpot() {
+        return spot;
+    }
+
+    public void setSpot(Spot spot) {
+        this.spot = spot;
+    }
+
+    public EntryPoint getEntryPoint() {
+        return entryPoint;
+    }
+
+    public void setEntryPoint(EntryPoint entryPoint) {
+        this.entryPoint = entryPoint;
     }
 }
